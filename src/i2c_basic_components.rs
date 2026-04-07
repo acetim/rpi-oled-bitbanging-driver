@@ -1,5 +1,5 @@
 use kernel::bindings;
-
+//TODO ADD ERROR HANDLING!!!!
 unsafe extern "C" {
     unsafe fn gpio_to_desc(gpio: u32) -> *mut bindings::gpio_desc;
     unsafe fn gpiod_direction_output(desc: *mut bindings::gpio_desc, value: core::ffi::c_int) -> core::ffi::c_int;
@@ -43,10 +43,6 @@ impl I2CBasics{
         return ack
     }
     fn write_bit(&self,boolean:bool){
-        /*
-        assumes sda and scl are set on logic 0
-        will set sda and scl to 0 at the end of the transfer
-         */
         self.set_sda(boolean);
         //send bit
         self.set_scl(true);
