@@ -1,0 +1,9 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "/home/acetim/rpi-oled-driver/rust-project.json"
+  ],
+  "rust-analyzer.server.extraEnv": {
+    "CARGO": "/home/acetim/.cargo/bin/cargo"
+  },
+  "rust-analyzer.check.overrideCommand": null
+}
