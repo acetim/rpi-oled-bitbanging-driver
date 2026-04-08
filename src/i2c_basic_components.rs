@@ -12,7 +12,7 @@ const GPIO_SDA: u32 = 514;
 const GPIO_SCL: u32 = 515;
 const DELAY:core::ffi::c_ulong =5;
 
-struct I2CBasics{
+pub struct I2CBasics{
     sda:*mut bindings::gpio_desc,
     scl:*mut bindings::gpio_desc,
 }
@@ -29,7 +29,7 @@ impl I2CBasics{
 
 
     pub fn write_byte(&self,mut byte:u8)->bool{
-        for i in (0..8){
+        for _ in 0..8{
             self.write_bit(byte&0x80!=0);
             byte<<=1
         }
@@ -37,7 +37,7 @@ impl I2CBasics{
         self.set_sda(true);
         self.set_scl(true);
 
-        ack=!self.read_sda();//check if low
+        let ack=!self.read_sda();//check if low
 
         self.set_scl(false);
         return ack
@@ -64,7 +64,7 @@ impl I2CBasics{
         self.set_sda(true);
     }
     fn set_sda(&self, boolean:bool){
-        if(boolean){
+        if boolean{
             unsafe{gpiod_direction_input(self.sda);}
         }
         else{
@@ -74,7 +74,7 @@ impl I2CBasics{
     }
     fn set_scl(&self, boolean:bool){
 
-        if(boolean){
+        if boolean{
             unsafe{gpiod_direction_input(self.scl);}
         }
         else{
@@ -85,12 +85,13 @@ impl I2CBasics{
     fn read_sda(&self)->bool{
         return unsafe{gpiod_get_value(self.sda)}!=0;
     }
-    impl Drop for I2CBasics{
-        fn drop(&mut self){
-            unsafe{
-                gpiod_put(self.sda);
-                gpiod_put(self.scl);
-            }
+
+} 
+impl Drop for I2CBasics{
+    fn drop(&mut self){
+        unsafe{
+            gpiod_put(self.sda);
+            gpiod_put(self.scl);
         }
     }
-} 
+}
