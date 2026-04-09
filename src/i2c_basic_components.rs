@@ -11,7 +11,10 @@ unsafe extern "C" {
 const GPIO_SDA: u32 = 514;
 const GPIO_SCL: u32 = 515;
 const DELAY:core::ffi::c_ulong =5;
-
+pub enum I2cError{
+    NoAck,
+    InvalidBytes
+}
 pub struct I2CBasics{
     sda:*mut bindings::gpio_desc,
     scl:*mut bindings::gpio_desc,
@@ -24,11 +27,7 @@ impl I2CBasics{
             scl: (unsafe{gpio_to_desc(GPIO_SCL)})
         }
     }
-
-
-
-
-    pub fn write_byte(&self,mut byte:u8)->bool{
+    pub fn write_byte(&self,mut byte:u8)->Result<(),I2cError>{
         for _ in 0..8{
             self.write_bit(byte&0x80!=0);
             byte<<=1
@@ -40,7 +39,7 @@ impl I2CBasics{
         let ack=!self.read_sda();//check if low
 
         self.set_scl(false);
-        return ack
+        return if ack {Ok(())} else{Err(I2cError::NoAck)}
     }
     fn write_bit(&self,boolean:bool){
         self.set_sda(boolean);

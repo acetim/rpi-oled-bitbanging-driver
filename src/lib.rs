@@ -4,6 +4,7 @@ mod i2c_oled_handler;
 use kernel::bindings;
 use kernel::prelude::*;
 use kernel::uaccess::UserSlice;
+use crate::i2c_basic_components::I2cError;
 use crate::i2c_oled_handler::I2COled;
 use kernel::alloc::allocator::Kmalloc;
 use kernel::alloc::KBox;
@@ -41,8 +42,22 @@ struct BitbangI2CDriver;
 
 impl kernel::Module for BitbangI2CDriver {
     fn init(_module: &'static ThisModule) -> Result<Self> {
-
+        /*
+        this function creates a new i2c handler, initializes it
+        and then saves it as a static global variable
+        it also creates a misc device uner /dev to allow userspace interaction
+         */
         let handler =I2COled::new();
+
+        match handler.init(){
+            Err(e)=>{
+                return match e {
+                I2cError::InvalidBytes=>Err(EINVAL),
+                I2cError::NoAck=>Err(ENODEV),
+            }},
+            _=>{}
+        }
+
         let global_handler = KBox::new(handler, GFP_KERNEL).map_err(|_| ENOMEM)?;
         unsafe { OLED = Box::into_raw(global_handler) };
 
@@ -73,7 +88,6 @@ unsafe extern "C" fn oled_write(
     then writes data to oled
     on fail - returns -1
      */
-    if count!=1024{return -1}
     let oled = unsafe { &*((*file).private_data as *const I2COled) };
     
     let ubuf = UserSlice::new(buf as _, count);
@@ -81,11 +95,11 @@ unsafe extern "C" fn oled_write(
     
     let mut kvec = match KVec::with_capacity(count, GFP_KERNEL){
         Ok(r)=>r,
-        Err(e)=>{pr_err!("error while trying to allocate memory");return -1}
+        Err(_e)=>{pr_err!("error while trying to allocate memory");return -1}
     };
     match ureader.read_all(&mut kvec, GFP_KERNEL){
-        Ok(r)=>{}
-        Err(e)=>{pr_err!("trouble while copying data from userspace");return -1}
+        Ok(_r)=>{}
+        Err(_e)=>{pr_err!("trouble while copying data from userspace");return -1}
     };
     let bytes=kvec.as_slice();
 
