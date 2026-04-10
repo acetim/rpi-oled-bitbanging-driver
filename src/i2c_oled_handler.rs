@@ -2,6 +2,7 @@ use crate::i2c_basic_components::{I2CBasics, I2cError};
 const OLED_ADDR:u8 =0x78;
 const OLED_PAGES:u8=8;
 const OLED_PAGE_BYTES:usize=128;
+use kernel::prelude::*;
 pub struct I2COled{
     i2c:I2CBasics
 }
@@ -25,6 +26,7 @@ impl I2COled{//TODO ADD WRITE!!
         for command in init_bytes{
             self.i2c.write_byte(command)?
         }
+        self.i2c.stop();
         Ok(())
     }
     pub fn write(&self,bytes:&[u8])-> Result<(),I2cError>{ 
@@ -32,7 +34,8 @@ impl I2COled{//TODO ADD WRITE!!
         writes raw data to the oled display
         expects a byte slice of size screenWidth*screenHeight
          */
-        if(bytes.len()!=OLED_PAGES as usize * OLED_PAGE_BYTES){
+        
+        if(bytes.len()<OLED_PAGES as usize * OLED_PAGE_BYTES){
             return Err(I2cError::InvalidBytes)
         }
 
@@ -41,18 +44,20 @@ impl I2COled{//TODO ADD WRITE!!
             self.i2c.start();
             self.i2c.write_byte(OLED_ADDR)?;
             self.i2c.write_byte(0x00)?;//command mode
-
             self.i2c.write_byte(0xB0+page)?;//set offset to start of the page
             self.i2c.write_byte(0x02)?;
             self.i2c.write_byte(0x10)?;
-
-            self.i2c.write_byte(0x40)?;//switch to data mode
-
+            self.i2c.stop();
+            //switch to data mode
+            self.i2c.start();
+            self.i2c.write_byte(OLED_ADDR)?;
+            self.i2c.write_byte(0x40)?;
             for offset in 0..OLED_PAGE_BYTES{
                 self.i2c.write_byte(bytes[(((page as usize)*OLED_PAGE_BYTES)+offset)])?;
             }
             self.i2c.stop();
         }
+        pr_info!("written to screen!\n");
         Ok(())
     }
 }

@@ -1,16 +1,15 @@
 use kernel::bindings;
-//TODO ADD ERROR HANDLING!!!!
 unsafe extern "C" {
     unsafe fn gpio_to_desc(gpio: u32) -> *mut bindings::gpio_desc;
     unsafe fn gpiod_direction_output(desc: *mut bindings::gpio_desc, value: core::ffi::c_int) -> core::ffi::c_int;
     unsafe fn gpiod_direction_input(desc: *mut bindings::gpio_desc) -> core::ffi::c_int;
     unsafe fn gpiod_put(desc: *mut bindings::gpio_desc);
-    unsafe fn udelay(usecs: core::ffi::c_ulong);
     unsafe fn gpiod_get_value(desc: *mut bindings::gpio_desc) -> core::ffi::c_int;
 }
 const GPIO_SDA: u32 = 514;
 const GPIO_SCL: u32 = 515;
-const DELAY:core::ffi::c_ulong =5;
+const DELAY:usize =5;
+#[derive(Debug)]
 pub enum I2cError{
     NoAck,
     InvalidBytes
@@ -69,7 +68,7 @@ impl I2CBasics{
         else{
             unsafe{gpiod_direction_output(self.sda, 0);}
         }
-        unsafe {udelay(DELAY);}
+        unsafe { bindings::__udelay(DELAY) };
     }
     fn set_scl(&self, boolean:bool){
 
@@ -79,7 +78,7 @@ impl I2CBasics{
         else{
             unsafe{gpiod_direction_output(self.scl, 0);}
         }
-        unsafe {udelay(DELAY);}
+        unsafe { bindings::__udelay(DELAY) };
     }
     fn read_sda(&self)->bool{
         return unsafe{gpiod_get_value(self.sda)}!=0;

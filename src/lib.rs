@@ -29,6 +29,7 @@ static OLED_FOPS: FOPSWrapper = FOPSWrapper(unsafe{
     ops.open = Some(oled_open);
     ops
 });
+
 static mut OLED_MISC: bindings::miscdevice = unsafe{
     let mut misc = core::mem::zeroed::<bindings::miscdevice>();
     misc.minor = bindings::MISC_DYNAMIC_MINOR as i32;
@@ -51,6 +52,7 @@ impl kernel::Module for BitbangI2CDriver {
 
         match handler.init(){
             Err(e)=>{
+                pr_err!("i2c error!:{:?}",e);
                 return match e {
                 I2cError::InvalidBytes=>Err(EINVAL),
                 I2cError::NoAck=>Err(ENODEV),
@@ -63,6 +65,7 @@ impl kernel::Module for BitbangI2CDriver {
 
         let ret = unsafe { misc_register(&raw mut OLED_MISC) };
         if ret<0{
+            pr_err!("failed to initiate misc");
             return Err(ENODEV)
         }
 
@@ -95,14 +98,17 @@ unsafe extern "C" fn oled_write(
     
     let mut kvec = match KVec::with_capacity(count, GFP_KERNEL){
         Ok(r)=>r,
-        Err(_e)=>{pr_err!("error while trying to allocate memory");return -1}
+        Err(_e)=>{pr_err!("error while trying to allocate memory\n");return -1}
     };
     match ureader.read_all(&mut kvec, GFP_KERNEL){
         Ok(_r)=>{}
-        Err(_e)=>{pr_err!("trouble while copying data from userspace");return -1}
+        Err(_e)=>{pr_err!("trouble while copying data from userspace\n");return -1}
     };
     let bytes=kvec.as_slice();
-
+    match oled.write(bytes) {
+        Err(e)=>{pr_err!("error while trying to write to oled screen!: {:?}\n",e)},
+        _=>{}
+    }
     return 1024;
 
 }
