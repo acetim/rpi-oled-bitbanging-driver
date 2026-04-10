@@ -8,7 +8,7 @@ unsafe extern "C" {
 }
 const GPIO_SDA: u32 = 514;
 const GPIO_SCL: u32 = 515;
-const DELAY:usize =5;
+const DELAY:usize =4;
 #[derive(Debug)]
 pub enum I2cError{
     NoAck,
@@ -34,6 +34,7 @@ impl I2CBasics{
 
         self.set_sda(true);
         self.set_scl(true);
+        self.delay();
 
         let ack=!self.read_sda();//check if low
 
@@ -44,6 +45,7 @@ impl I2CBasics{
         self.set_sda(boolean);
         //send bit
         self.set_scl(true);
+        self.delay();
         //reset
         self.set_scl(false);
 
@@ -52,14 +54,19 @@ impl I2CBasics{
         //init
         self.set_sda(true);
         self.set_scl(true);
-        
+        self.delay();
         self.set_sda(false);
+        self.delay();
         self.set_scl(false);
+        self.delay();
     }
     pub fn stop(&self){
         self.set_sda(false);
         self.set_scl(true);
+        self.delay();
         self.set_sda(true);
+        self.delay();
+        
     }
     fn set_sda(&self, boolean:bool){
         if boolean{
@@ -68,16 +75,16 @@ impl I2CBasics{
         else{
             unsafe{gpiod_direction_output(self.sda, 0);}
         }
-        unsafe { bindings::__udelay(DELAY) };
     }
     fn set_scl(&self, boolean:bool){
-
         if boolean{
             unsafe{gpiod_direction_input(self.scl);}
         }
         else{
             unsafe{gpiod_direction_output(self.scl, 0);}
-        }
+        }  
+    }
+    fn delay(&self){
         unsafe { bindings::__udelay(DELAY) };
     }
     fn read_sda(&self)->bool{
