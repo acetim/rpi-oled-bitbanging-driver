@@ -57,7 +57,6 @@ impl I2COled{//TODO ADD WRITE!!
             }
             self.i2c.stop();
         }
-        pr_info!("written to screen!\n");
         Ok(())
     }
 }
