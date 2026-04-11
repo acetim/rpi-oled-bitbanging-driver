@@ -119,7 +119,7 @@ impl Drop for BitbangI2CDriver {
             misc_deregister(&raw mut OLED_MISC);
             drop(Box::<I2COled, Kmalloc>::from_raw(OLED));
             OLED = core::ptr::null_mut();
-            pr_info!("GPIO test unloaded\n");
+            pr_info!("i2c oled driver unloaded\n");
         }
     }
 }
