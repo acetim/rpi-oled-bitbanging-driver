@@ -7,7 +7,7 @@ my first kernel module/driver!
 [demo](https://www.youtube.com/watch?v=q4vWCGMs8_4)
 
 using the bit-banging technique to control my i2c oled display on my raspberry pi
-![](https://i.postimg.cc/Fs1nSrJL/Screenshot-2026-04-11-040517.png)
+![](https://i.postimg.cc/XN1CPfw8/20260729-145227.jpg)
 # what is bitbanging?
 bitbanging is the technique of controling hardware components by manually turning gpio pins on/off according to a certain communication protocol (i2c\spi etc..)- 
 
