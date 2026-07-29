@@ -26,4 +26,5 @@ pub fn write_pixel(&mut self, x: usize, y: usize) {
         self.screen[(page<<10)+(x<<3)+(y-(page<<3))] = true;
     }
 ```
-(screen is the linear bitmap that gets send as bytes to /dev/oled)
+(screen is the linear bitmap that gets sent as bytes to /dev/oled)
+the reason for this weird setup is some oled internal display mechanisms
