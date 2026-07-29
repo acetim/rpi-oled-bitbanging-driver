@@ -17,3 +17,13 @@ this project is a driver that controls an oled display that uses the i2c dta bus
 just change the constants in i2c_basic_components.rs GPIO_SCL and GPIO_SDA to be your gpio pin number and recompile the program!
 
 ### im currently working on a library to make interaction with the display even more user friendly
+
+when writing userspace apps 
+please use this translation from 2d ->1d
+```rust
+pub fn write_pixel(&mut self, x: usize, y: usize) {
+        let page=y>>3;
+        self.screen[(page<<10)+(x<<3)+(y-(page<<3))] = true;
+    }
+```
+(screen is the linear bitmap that gets send as bytes to /dev/oled)
